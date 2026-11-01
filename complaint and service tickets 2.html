@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>HelpDesk – Complaint &amp; Service Tickets</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#eef2f6;--card:#fff;--ink:#1b2a3a;--mute:#5d6b7a;--line:#d8e0e8;--pri:#2f45a8;--pri-ink:#fff;
+--open:#b4540a;--open-bg:#fdeede;--prog:#1d5fb8;--prog-bg:#e2eefc;--res:#17794a;--res-bg:#ddf4e8;--clo:#555f6b;--clo-bg:#e6e9ed;--high:#b3261e;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121a24;--card:#1b2633;--ink:#e6edf4;--mute:#97a6b6;--line:#2c3a4a;--pri:#7f93f0;--pri-ink:#0e1530;
+--open:#f0a867;--open-bg:#3a2a18;--prog:#7db4f5;--prog-bg:#182c45;--res:#6fd3a0;--res-bg:#173626;--clo:#aab4bf;--clo-bg:#2a3441;--high:#ff8a80}}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Figtree,system-ui,-apple-system,"Segoe UI",sans-serif}
+header{background:var(--card);border-bottom:1px solid var(--line)}
+.wrap{max-width:980px;margin:0 auto;padding:0 16px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:14px 0}
+h1{font-size:1.25rem;margin:0;font-weight:700}
+nav{display:flex;gap:4px;flex-wrap:wrap}
+nav button{border:0;background:none;color:var(--mute);font:inherit;font-weight:600;padding:8px 14px;border-radius:8px;cursor:pointer}
+nav button[aria-selected="true"]{background:var(--pri);color:var(--pri-ink)}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid var(--pri);outline-offset:2px}
+main{padding:24px 0 48px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px;margin-bottom:16px}
+h2{margin:0 0 4px;font-size:1.3rem}
+.sub{color:var(--mute);margin:0 0 16px}
+label{display:block;font-weight:600;font-size:.9rem;margin:12px 0 4px}
+input,select,textarea{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+textarea{min-height:110px;resize:vertical}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:560px){.row{grid-template-columns:1fr}}
+.btn{background:var(--pri);color:var(--pri-ink);border:0;border-radius:8px;padding:10px 18px;font:inherit;font-weight:600;cursor:pointer;margin-top:16px}
+.btn.ghost{background:none;color:var(--pri);border:1px solid var(--line);margin-top:0;padding:6px 12px;font-size:.875rem}
+.pill{display:inline-block;padding:2px 10px;border-radius:99px;font-size:.8rem;font-weight:600;white-space:nowrap}
+.s-Open{background:var(--open-bg);color:var(--open)}.s-In\ Progress{background:var(--prog-bg);color:var(--prog)}
+.s-Resolved{background:var(--res-bg);color:var(--res)}.s-Closed{background:var(--clo-bg);color:var(--clo)}
+.p-High{color:var(--high);font-weight:700}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+@media(max-width:560px){.stats{grid-template-columns:repeat(2,1fr)}}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px}
+.stat b{display:block;font-size:1.7rem;line-height:1.1}.stat span{color:var(--mute);font-size:.85rem}
+.tools{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}.tools input{flex:1;min-width:160px}.tools select{width:auto}
+.tk{border-top:1px solid var(--line);padding:14px 0}.tk:first-child{border-top:0}
+.tk-h{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center}
+.tk-h strong{font-size:1rem}.meta{color:var(--mute);font-size:.85rem}
+.desc{margin:8px 0;white-space:pre-wrap}
+.thread{border-left:3px solid var(--line);padding-left:12px;margin:10px 0}
+.msg{margin:6px 0;font-size:.92rem}.msg small{color:var(--mute)}
+.adm{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.adm input{flex:1;min-width:180px}.adm select{width:auto}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:8px;font-weight:600;z-index:20}
+.empty{color:var(--mute);text-align:center;padding:24px 0}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<header><div class="wrap top">
+  <h1>HelpDesk</h1>
+  <nav role="tablist" id="nav">
+    <button role="tab" data-v="new" aria-selected="true">Raise a complaint</button>
+    <button role="tab" data-v="track" aria-selected="false">Track ticket</button>
+    <button role="tab" data-v="admin" aria-selected="false">Admin</button>
+  </nav>
+</div></header>
+<main class="wrap">
+
+<section id="v-new">
+  <div class="card">
+    <h2>Raise a complaint or service request</h2>
+    <p class="sub">Fill in the details. You’ll get a ticket ID to track progress.</p>
+    <div id="form">
+      <div class="row">
+        <div><label for="f-name">Full name</label><input id="f-name" autocomplete="name"></div>
+        <div><label for="f-email">Email</label><input id="f-email" type="email" autocomplete="email"></div>
+      </div>
+      <div class="row">
+        <div><label for="f-cat">Category</label>
+          <select id="f-cat"><option>Complaint</option><option>Service request</option><option>Billing</option><option>Technical issue</option><option>Other</option></select></div>
+        <div><label for="f-pri">Priority</label>
+          <select id="f-pri"><option>Low</option><option selected>Medium</option><option>High</option></select></div>
+      </div>
+      <label for="f-sub">Subject</label><input id="f-sub">
+      <label for="f-desc">Describe the problem</label><textarea id="f-desc"></textarea>
+      <button class="btn" id="submit">Submit ticket</button>
+    </div>
+    <div id="done" hidden>
+      <h2>Ticket submitted</h2>
+      <p class="sub">Save this ticket ID to track your complaint:</p>
+      <p style="font-size:1.8rem;font-weight:700;margin:8px 0" id="newid"></p>
+      <button class="btn" id="another">Raise another ticket</button>
+    </div>
+  </div>
+</section>
+
+<section id="v-track" hidden>
+  <div class="card">
+    <h2>Track your ticket</h2>
+    <p class="sub">Enter the ticket ID you received, for example TKT-1001.</p>
+    <div class="tools"><input id="t-id" placeholder="TKT-1001" aria-label="Ticket ID"><button class="btn" style="margin:0" id="t-go">Check status</button></div>
+    <div id="t-out"></div>
+  </div>
+</section>
+
+<section id="v-admin" hidden>
+  <div class="card" id="login">
+    <h2>Admin sign in</h2>
+    <p class="sub">Demo login: admin / admin123</p>
+    <div class="row">
+      <div><label for="a-u">Username</label><input id="a-u" autocomplete="username"></div>
+      <div><label for="a-p">Password</label><input id="a-p" type="password" autocomplete="current-password"></div>
+    </div>
+    <button class="btn" id="a-go">Sign in</button>
+  </div>
+  <div id="panel" hidden>
+    <div class="stats" id="stats"></div>
+    <div class="card">
+      <div class="tools">
+        <input id="q" placeholder="Search by ID, name or subject" aria-label="Search tickets">
+        <select id="fs" aria-label="Filter by status"><option value="">All statuses</option><option>Open</option><option>In Progress</option><option>Resolved</option><option>Closed</option></select>
+        <button class="btn ghost" id="out">Sign out</button>
+      </div>
+      <div id="list"></div>
+    </div>
+  </div>
+</section>
+
+</main>
+<div class="toast" id="toast" hidden></div>
+<script>
+(function(){
+var KEY="helpdesk_tickets_v1", admin=false;
+var $=function(i){return document.getElementById(i)};
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
+function fmt(t){return new Date(t).toLocaleString([], {day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})}
+function seed(){var n=Date.now();return[
+ {id:"TKT-1001",name:"Aman Verma",email:"aman@example.com",cat:"Technical issue",pri:"High",sub:"Wi‑Fi not working in hostel block B",desc:"No connection since yesterday evening on floors 2 and 3.",status:"In Progress",created:n-864e5,msgs:[{by:"Admin",text:"Technician has been assigned. Expected fix by tonight.",at:n-4e7}]},
+ {id:"TKT-1002",name:"Priya Singh",email:"priya@example.com",cat:"Billing",pri:"Medium",sub:"Charged twice for the same fee",desc:"Two debits of ₹1,500 on 28 Oct.",status:"Open",created:n-2e7,msgs:[]},
+ {id:"TKT-1003",name:"Rahul Gupta",email:"rahul@example.com",cat:"Service request",pri:"Low",sub:"Need a new ID card",desc:"My ID card was damaged. Please issue a replacement.",status:"Resolved",created:n-3e8,msgs:[{by:"Admin",text:"New card is ready at the front office.",at:n-2e8}]}]}
+function load(){try{var r=localStorage.getItem(KEY);if(r){return JSON.parse(r)}}catch(e){}return seed()}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(T))}catch(e){}}
+var T=load();
+function toast(m){var t=$("toast");t.textContent=m;t.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(function(){t.hidden=true},2200)}
+function nextId(){var m=1000;T.forEach(function(t){var n=parseInt(t.id.slice(4),10);if(n>m)m=n});return"TKT-"+(m+1)}
+function pill(s){return'<span class="pill s-'+esc(s)+'">'+esc(s)+'</span>'}
+function thread(t){if(!t.msgs.length)return"";return'<div class="thread">'+t.msgs.map(function(m){return'<div class="msg"><b>'+esc(m.by)+'</b> <small>'+fmt(m.at)+'</small><br>'+esc(m.text)+'</div>'}).join("")+'</div>'}
+
+document.querySelectorAll("#nav button").forEach(function(b){b.onclick=function(){show(b.dataset.v)}});
+function show(v){["new","track","admin"].forEach(function(x){$("v-"+x).hidden=x!==v});
+ document.querySelectorAll("#nav button").forEach(function(b){b.setAttribute("aria-selected",b.dataset.v===v)});
+ if(v==="admin")renderAdmin()}
+
+$("submit").onclick=function(){
+ var name=$("f-name").value.trim(),email=$("f-email").value.trim(),sub=$("f-sub").value.trim(),desc=$("f-desc").value.trim();
+ if(!name||!sub||!desc){toast("Name, subject and description are required");return}
+ if(!/^\S+@\S+\.\S+$/.test(email)){toast("Enter a valid email address");return}
+ var t={id:nextId(),name:name,email:email,cat:$("f-cat").value,pri:$("f-pri").value,sub:sub,desc:desc,status:"Open",created:Date.now(),msgs:[]};
+ T.unshift(t);save();$("newid").textContent=t.id;$("form").hidden=true;$("done").hidden=false};
+$("another").onclick=function(){["f-name","f-email","f-sub","f-desc"].forEach(function(i){$(i).value=""});$("form").hidden=false;$("done").hidden=true};
+
+function track(){
+ var id=$("t-id").value.trim().toUpperCase(),t=T.filter(function(x){return x.id===id})[0],o=$("t-out");
+ if(!t){o.innerHTML='<p class="empty">No ticket found with that ID. Check it and try again.</p>';return}
+ o.innerHTML='<div class="tk"><div class="tk-h"><strong>'+esc(t.sub)+'</strong>'+pill(t.status)+'</div><div class="meta">'+esc(t.id)+' · '+esc(t.cat)+' · '+esc(t.pri)+' priority · '+fmt(t.created)+'</div><div class="desc">'+esc(t.desc)+'</div>'+(thread(t)||'<p class="meta">No replies yet. We’ll update this page when someone responds.</p>')+'</div>'}
+$("t-go").onclick=track;$("t-id").onkeydown=function(e){if(e.key==="Enter")track()};
+
+$("a-go").onclick=function(){if($("a-u").value==="admin"&&$("a-p").value==="admin123"){admin=true;renderAdmin()}else toast("Wrong username or password")};
+$("out").onclick=function(){admin=false;$("a-p").value="";renderAdmin()};
+$("q").oninput=renderList;$("fs").onchange=renderList;
+
+function renderAdmin(){$("login").hidden=admin;$("panel").hidden=!admin;if(admin){renderStats();renderList()}}
+function renderStats(){
+ var c=function(s){return T.filter(function(t){return t.status===s}).length};
+ $("stats").innerHTML=[["Total",T.length],["Open",c("Open")],["In progress",c("In Progress")],["Resolved",c("Resolved")+c("Closed")]].map(function(a){return'<div class="stat"><b>'+a[1]+'</b><span>'+a[0]+'</span></div>'}).join("")}
+function renderList(){
+ var q=$("q").value.toLowerCase(),fs=$("fs").value;
+ var r=T.filter(function(t){return(!fs||t.status===fs)&&(!q||(t.id+t.name+t.sub).toLowerCase().indexOf(q)>-1)});
+ if(!r.length){$("list").innerHTML='<p class="empty">No tickets match. Clear the search or filter.</p>';return}
+ $("list").innerHTML=r.map(function(t){return'<div class="tk" data-id="'+t.id+'"><div class="tk-h"><strong>'+esc(t.sub)+'</strong>'+pill(t.status)+'</div>'+
+ '<div class="meta">'+esc(t.id)+' · '+esc(t.name)+' ('+esc(t.email)+') · '+esc(t.cat)+' · <span class="p-'+esc(t.pri)+'">'+esc(t.pri)+'</span> · '+fmt(t.created)+'</div>'+
+ '<div class="desc">'+esc(t.desc)+'</div>'+thread(t)+
+ '<div class="adm"><select aria-label="Status">'+["Open","In Progress","Resolved","Closed"].map(function(s){return'<option'+(s===t.status?' selected':'')+'>'+s+'</option>'}).join("")+'</select>'+
+ '<input placeholder="Write a reply" aria-label="Reply"><button class="btn ghost" data-a="save">Save</button><button class="btn ghost" data-a="del">Delete</button></div></div>'}).join("")}
+$("list").onclick=function(e){
+ var a=e.target.dataset.a;if(!a)return;
+ var box=e.target.closest(".tk"),t=T.filter(function(x){return x.id===box.dataset.id})[0];
+ if(a==="del"){if(confirm("Delete "+t.id+"? This can’t be undone.")){T=T.filter(function(x){return x!==t});save();renderAdmin();toast("Deleted "+t.id)}return}
+ var st=box.querySelector("select").value,inp=box.querySelector("input"),txt=inp.value.trim();
+ t.status=st;if(txt)t.msgs.push({by:"Admin",text:txt,at:Date.now()});
+ save();renderAdmin();toast("Saved "+t.id)};
+})();
+</script>
+</body>
+</html>
